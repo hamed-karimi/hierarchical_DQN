@@ -18,5 +18,5 @@
     "GAMMA" : 0.99,
     "PRINT_OUTPUT": 500,
     "REWARDED_ACTION_SAMPLING_PROBABILITY_RATIO": 2,
-    "CONTROLLER_DIRECTORY": "C:\\Users\\Hamed\\PycharmProjects\\h_DQN_separate_controller_meta_controller\\tr100000_len100_07-06-2022_11-15\\Controller"
+    "CONTROLLER_DIRECTORY": ".\\tr100000_len100_07-06-2022_11-15\\Controller"
 }
