@@ -19,7 +19,7 @@ def get_controller_loss(controller_at_loss, device):
         return torch.Tensor([0.0]).to(device)
 
 
-def get_meta_controller_loss(meta_controller_at_loss, device):
+def get_meta_controller_loss(meta_controller_at_loss):
     if torch.is_tensor(meta_controller_at_loss):
         return meta_controller_at_loss.detach().item()
     else:

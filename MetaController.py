@@ -16,7 +16,8 @@ class MetaControllerMemory(ReplayMemory):
 
     def get_transition(self, *args):
         Transition = namedtuple('Transition',
-                                ('initial_map', 'initial_need', 'goal_index', 'cum_reward', 'done', 'final_map', 'final_need'))
+                                ('initial_map', 'initial_need', 'goal_index', 'cum_reward', 'done', 'final_map',
+                                 'final_need'))
         return Transition(*args)
 
 
@@ -49,7 +50,7 @@ class MetaController:
 
     def get_linear_epsilon(self, episode):
         epsilon = self.EPS_START - (episode / self.episode_num) * \
-                                    (self.EPS_START - self.EPS_END)
+                  (self.EPS_START - self.EPS_END)
         return epsilon
 
     def get_goal_map(self, environment, agent, episode):
@@ -87,7 +88,7 @@ class MetaController:
         self.memory.push_experience(initial_map, initial_need, goal_index, acquired_reward, done, final_map, final_need)
         relu = nn.ReLU()
         sigmoid = nn.Sigmoid()
-        memory_prob = sigmoid(acquired_reward) # This should be changed to sigmoid
+        memory_prob = sigmoid(acquired_reward)  # This should be changed to sigmoid
         self.memory.push_selection_ratio(selection_ratio=memory_prob)
 
     def update_target_net(self):
@@ -99,13 +100,13 @@ class MetaController:
         transition_sample = self.memory.sample(self.BATCH_SIZE)
         batch = self.memory.get_transition(*zip(*transition_sample))
 
-        initial_map_batch = torch.cat([batch.initial_map[i] for i in range(len(batch.initial_map))])
-        initial_need_batch = torch.cat([batch.initial_need[i] for i in range(len(batch.initial_need))])
-        goal_indices_batch = torch.cat(batch.goal_index)
-        cum_reward_batch = torch.cat(batch.cum_reward)
-        done_batch = torch.cat(batch.done)
-        final_map_batch = torch.cat([batch.final_map[i] for i in range(len(batch.final_map))])
-        final_need_batch = torch.cat([batch.final_need[i] for i in range(len(batch.final_need))])
+        initial_map_batch = torch.cat([batch.initial_map[i] for i in range(len(batch.initial_map))]).to(self.device)
+        initial_need_batch = torch.cat([batch.initial_need[i] for i in range(len(batch.initial_need))]).to(self.device)
+        goal_indices_batch = torch.cat(batch.goal_index).to(self.device)
+        cum_reward_batch = torch.cat(batch.cum_reward).to(self.device)
+        done_batch = torch.cat(batch.done).to(self.device)
+        final_map_batch = torch.cat([batch.final_map[i] for i in range(len(batch.final_map))]).to(self.device)
+        final_need_batch = torch.cat([batch.final_need[i] for i in range(len(batch.final_need))]).to(self.device)
 
         final_state_batch = State_batch(final_map_batch, final_need_batch)
         initial_state_batch = State_batch(initial_map_batch, initial_need_batch)
@@ -115,7 +116,7 @@ class MetaController:
 
         targetnet_max_goal_value = targetnet_goal_values_of_final_state.max(1)[0].detach().float()
         goal_values_of_selected_goals = policynet_goal_values_of_initial_state \
-                                        .gather(dim=1, index=goal_indices_batch.unsqueeze(1))
+            .gather(dim=1, index=goal_indices_batch.unsqueeze(1))
         expected_goal_values = (1 - done_batch) * targetnet_max_goal_value * self.GAMMA + cum_reward_batch
 
         criterion = nn.SmoothL1Loss()

@@ -18,6 +18,6 @@ print('Saving Controller...')
 controller_model_path = os.path.join(controller_dir, 'controller_model.pt')
 torch.save(controller.target_net.state_dict(), controller_model_path)
 
-meta_controller, meta_controller_dir = training_meta_controller(controller, device)
+meta_controller, meta_controller_dir = training_meta_controller(controller)
 meta_controller_model_path = os.path.join(meta_controller_dir, 'meta_controller_model.pt')
 torch.save(meta_controller.target_net.state_dict(), meta_controller_model_path)

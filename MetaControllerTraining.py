@@ -8,7 +8,7 @@ from Utilities import Utilities
 from AgentExplorationFunctions import *
 
 
-def training_meta_controller(controller, device):
+def training_meta_controller(controller):
     utility = Utilities('Parameters.json')
     params = utility.get_params()
 
@@ -31,8 +31,8 @@ def training_meta_controller(controller, device):
         action = 0
         agent = factory.get_agent(need_num=2)
         environment = factory.get_environment(environment_initialization_prob_map, num_object=2)
-        initial_env_map = environment.env_map.clone().to(device)
-        initial_need = agent.need.clone().to(device)
+        initial_env_map = environment.env_map.clone()
+        initial_need = agent.need.clone()
         goal_map, goal_index = meta_controller.get_goal_map(environment, agent, episode)
         num_goal_selected[goal_index] += 1
         goal_reached = False
@@ -40,11 +40,11 @@ def training_meta_controller(controller, device):
         while action < params.EPISODE_LEN and not goal_reached:
             last_agent_goal_map = torch.stack(
                 [environment.env_map[0, 0, :, :], goal_map], dim=0) \
-                .unsqueeze(0).clone().to(device)
+                .unsqueeze(0).clone()
             action_id = controller.get_action(environment, last_agent_goal_map, episode).clone()
             rho, _ = agent.take_action(environment, action_id)
             at_loss = meta_controller.optimize()
-            episode_meta_controller_loss = get_meta_controller_loss(at_loss, device)
+            episode_meta_controller_loss = get_meta_controller_loss(at_loss)
 
             goal_reached = agent_reached_goal(agent, environment, goal_index)
             if goal_reached:
@@ -56,8 +56,8 @@ def training_meta_controller(controller, device):
             global_index += 1
         meta_controller.save_experience(initial_env_map, initial_need, goal_index,
                                         episode_meta_controller_reward, done,
-                                        environment.env_map.clone().to(device),
-                                        agent.need.clone().to(device))
+                                        environment.env_map.clone(),
+                                        agent.need.clone())
         meta_controller_reward_sum += episode_meta_controller_reward.item()
         meta_controller_loss_list.append((episode_meta_controller_loss / action))
         if (episode + 1) % params.PRINT_OUTPUT == 0:
