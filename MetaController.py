@@ -86,7 +86,8 @@ class MetaController:
     def save_experience(self, initial_map, initial_need, goal_index, acquired_reward, done, final_map, final_need):
         self.memory.push_experience(initial_map, initial_need, goal_index, acquired_reward, done, final_map, final_need)
         relu = nn.ReLU()
-        memory_prob = relu(acquired_reward) + 1 # This should be changed to sigmoid
+        sigmoid = nn.Sigmoid()
+        memory_prob = sigmoid(acquired_reward) # This should be changed to sigmoid
         self.memory.push_selection_ratio(selection_ratio=memory_prob)
 
     def update_target_net(self):
