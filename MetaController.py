@@ -111,8 +111,8 @@ class MetaController:
         final_state_batch = State_batch(final_map_batch, final_need_batch)
         initial_state_batch = State_batch(initial_map_batch, initial_need_batch)
 
-        policynet_goal_values_of_initial_state = self.policy_net(initial_state_batch)
-        targetnet_goal_values_of_final_state = self.target_net(final_state_batch)
+        policynet_goal_values_of_initial_state = self.policy_net(initial_state_batch).to(self.device)
+        targetnet_goal_values_of_final_state = self.target_net(final_state_batch).to(self.device)
 
         targetnet_max_goal_value = targetnet_goal_values_of_final_state.max(1)[0].detach().float()
         goal_values_of_selected_goals = policynet_goal_values_of_initial_state \
