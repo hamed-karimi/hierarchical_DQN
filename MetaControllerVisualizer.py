@@ -62,7 +62,7 @@ class MetaControllerVisualizer(Visualizer):
                         which_goal[i, j] = goal
                         agent_goal_map = self.get_agent_goal_map_from_selected_goal(i, j,
                                                                                     goal_index=goal,
-                                                                                    object_locations=object_locations)
+                                                                                    object_locations=object_locations).to(self.device)
 
                         # agent_goal_map = torch.zeros((1, 2, self.height, self.width))
                         # agent_goal_map[0, 0, i, j] = 1  # agent layer
