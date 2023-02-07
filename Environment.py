@@ -19,7 +19,7 @@ class Environment:
         self.object_locations = self.init_object_locations()
         self.update_agent_location_on_map(agent)
         self.reward_of_object = [reward_of_object] * agent.num_need
-        self.cost_of_staying = 0
+        self.cost_of_staying = 0.5
         allactions_np = [np.array([0, 0]), np.array([1, 0]), np.array([-1, 0]), np.array([0, 1]), np.array([0, -1]),
                          np.array([1, 1]), np.array([-1, -1]), np.array([-1, 1]), np.array([1, -1])]
         self.allactions = [torch.from_numpy(x).unsqueeze(0) for x in allactions_np]
