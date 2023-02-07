@@ -67,7 +67,7 @@ class MetaController:
                 need = agent.need.to(self.device)
                 state = State_batch(env_map, need)
                 goal_values = self.policy_net(state).squeeze()
-                ind = goal_values.argmax()
+                ind = goal_values.argmax().cpu()
 
         # stay
         if ind == object_locations.shape[0]:
