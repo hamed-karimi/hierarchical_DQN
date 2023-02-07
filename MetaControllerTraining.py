@@ -37,7 +37,7 @@ def training_meta_controller(controller):
         num_goal_selected[goal_index] += 1
         goal_reached = False
         done = torch.tensor([0])
-        while action < params.EPISODE_LEN and not goal_reached:
+        while True:
             last_agent_goal_map = torch.stack(
                 [environment.env_map[0, 0, :, :], goal_map], dim=0) \
                 .unsqueeze(0).clone()
@@ -47,13 +47,15 @@ def training_meta_controller(controller):
             episode_meta_controller_loss = get_meta_controller_loss(at_loss)
 
             goal_reached = agent_reached_goal(agent, environment, goal_index)
-            if goal_reached:
-                done = torch.tensor([1])
-
             episode_meta_controller_reward += rho
             agent_needs_over_time[global_index, :] = agent.need.clone()
             action += 1
             global_index += 1
+
+            if goal_reached:
+                done = torch.tensor([1])
+            if goal_reached or action < params.EPISODE_LEN or rho >= 0:
+                break
         meta_controller.save_experience(initial_env_map, initial_need, goal_index,
                                         episode_meta_controller_reward, done,
                                         environment.env_map.clone(),
