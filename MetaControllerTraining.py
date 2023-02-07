@@ -54,7 +54,7 @@ def training_meta_controller(controller):
 
             if goal_reached:
                 done = torch.tensor([1])
-            if goal_reached or action < params.EPISODE_LEN or rho >= 0:
+            if goal_reached or action == params.EPISODE_LEN or rho >= 0:
                 break
         meta_controller.save_experience(initial_env_map, initial_need, goal_index,
                                         episode_meta_controller_reward, done,
