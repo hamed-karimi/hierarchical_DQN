@@ -26,6 +26,7 @@ class Utilities:
         elif not os.path.exists(dirname):
             os.makedirs(dirname)
         return dirname
+
     def get_environment_probability_map(self, style, params): # style: 'equal', or 'edges'
         if style == 'equal':
             prob_map = np.ones(params.HEIGHT * params.WIDTH) * 100 / (params.HEIGHT * params.WIDTH)

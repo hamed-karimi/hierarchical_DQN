@@ -13,7 +13,7 @@ class Agent:
         self.location = torch.from_numpy(np.asarray((np.random.randint(h), np.random.randint(w)))).unsqueeze(0)
         self.num_need = n
         self.initial_need_level = 5
-        self.range_of_need = [-10, 10]
+        self.range_of_need = [-12, 12]
         self.prob_init_needs_equal = prob_init_needs_equal
         self.need = self.set_need()
         self.steps_done = 0
@@ -50,7 +50,7 @@ class Agent:
     def update_need_after_reward(self, reward):
         self.need = self.need - reward
         for i in range(self.num_need):
-            self.need[0, i] = max(self.need[0, i], -10)
+            self.need[0, i] = max(self.need[0, i], -12)
 
     def get_total_need(self):
         total_need = self.rho_function(self.need).sum().squeeze()

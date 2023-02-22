@@ -35,7 +35,7 @@ def training_meta_controller(controller):
         initial_need = agent.need.clone()
         goal_map, goal_index = meta_controller.get_goal_map(environment, agent, episode)
         num_goal_selected[goal_index] += 1
-        goal_reached = False
+        # goal_reached = False
         done = torch.tensor([0])
         while True:
             last_agent_goal_map = torch.stack(
