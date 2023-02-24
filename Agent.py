@@ -59,18 +59,18 @@ class Agent:
     def get_location(self):
         return self.location
 
-    def reset_location(self, environment):  # Resets the location to somewhere other than the current one
-        temp = (self.all_locations != self.location.squeeze())
-        temp = torch.logical_or(temp[:, 0], temp[:, 1])
-        for obj in range(environment.nObj):
-            object_nonoccupied = (
-                        self.all_locations != environment.object_locations[obj, :].squeeze())
-            object_nonoccupied = torch.logical_or(object_nonoccupied[:, 0], object_nonoccupied[:, 1])
-            temp = torch.logical_and(temp, object_nonoccupied)
-        available_locations = [self.all_locations[i, :] for i in range(len(temp)) if temp[i]]
-        new_location = random.choice(available_locations)
-        self.location = torch.from_numpy(np.array(new_location)).unsqueeze(0)
-        environment.update_agent_location_on_map(self)
+    # def reset_location(self, environment):  # Resets the location to somewhere other than the current one
+    #     temp = (self.all_locations != self.location.squeeze())
+    #     temp = torch.logical_or(temp[:, 0], temp[:, 1])
+    #     for obj in range(environment.nObj):
+    #         object_nonoccupied = (
+    #                     self.all_locations != environment.object_locations[obj, :].squeeze())
+    #         object_nonoccupied = torch.logical_or(object_nonoccupied[:, 0], object_nonoccupied[:, 1])
+    #         temp = torch.logical_and(temp, object_nonoccupied)
+    #     available_locations = [self.all_locations[i, :] for i in range(len(temp)) if temp[i]]
+    #     new_location = random.choice(available_locations)
+    #     self.location = torch.from_numpy(np.array(new_location)).unsqueeze(0)
+    #     environment.update_agent_location_on_map(self)
 
     def take_action(self, environment, action_id):
         self.update_need_after_step()
