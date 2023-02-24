@@ -41,7 +41,7 @@ class Environment:
                 if sum(self.env_map[0, 1:, sample[0], sample[1]]) == 0:  # This location is empty on every object layer
                     object_locations[at_obj, :] = torch.from_numpy(sample)
                     self.env_map[0, 1+at_obj, sample[0], sample[1]] = 1
-                    self.probability_map[rand_num_in_range] *= .9
+                    # self.probability_map[rand_num_in_range] *= .9
                     do = 0
         return object_locations
 
