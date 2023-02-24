@@ -13,7 +13,7 @@ class Agent:
         self.location = torch.from_numpy(np.asarray((np.random.randint(h), np.random.randint(w)))).unsqueeze(0)
         self.num_need = n
         self.initial_need_level = 5
-        self.range_of_need = [-14, 14]
+        self.range_of_need = [-12, 12]
         self.prob_init_needs_equal = prob_init_needs_equal
         self.need = self.set_need()
         self.steps_done = 0
