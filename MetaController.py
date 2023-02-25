@@ -54,7 +54,8 @@ class MetaController:
         return epsilon
 
     def get_goal_map(self, environment, agent, episode):
-        epsilon = self.get_nonlinear_epsilon(episode)
+        # epsilon = self.get_nonlinear_epsilon(episode)
+        epsilon = self.get_linear_epsilon(episode)
         self.epsilon_list.append(epsilon)
         object_locations = environment.object_locations.clone()
         e = random.random()
