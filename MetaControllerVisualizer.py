@@ -36,7 +36,7 @@ class MetaControllerVisualizer(Visualizer):
         agent_goal_map = torch.zeros((1, 2, self.height, self.width))
         agent_goal_map[0, 0, i, j] = 1
         if goal_index == object_locations.shape[0]: # stay
-            agent_goal_map[0, 0, :, :] = agent_goal_map[0, 1, :, :].clone()
+            agent_goal_map[0, 1, :, :] = agent_goal_map[0, 0, :, :].clone()
         else: # goal
             agent_goal_map[0, 1, object_locations[goal_index, 0], object_locations[goal_index, 1]] = 1
         return agent_goal_map
