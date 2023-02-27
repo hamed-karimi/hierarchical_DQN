@@ -118,7 +118,8 @@ class MetaController:
         targetnet_max_goal_value = targetnet_goal_values_of_final_state.max(1)[0].detach().float()
         goal_values_of_selected_goals = policynet_goal_values_of_initial_state \
             .gather(dim=1, index=goal_indices_batch.unsqueeze(1))
-        expected_goal_values = (1 - done_batch) * targetnet_max_goal_value * self.GAMMA + cum_reward_batch
+        # expected_goal_values = (1 - done_batch) * targetnet_max_goal_value * self.GAMMA + cum_reward_batch
+        expected_goal_values = targetnet_max_goal_value * self.GAMMA + cum_reward_batch
 
         criterion = nn.SmoothL1Loss()
         loss = criterion(goal_values_of_selected_goals, expected_goal_values.unsqueeze(1))
