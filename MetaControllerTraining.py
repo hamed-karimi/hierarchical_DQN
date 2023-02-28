@@ -47,7 +47,8 @@ def training_meta_controller(controller):
             episode_meta_controller_loss = get_meta_controller_loss(at_loss)
 
             goal_reached = agent_reached_goal(agent, environment, goal_index)
-            episode_meta_controller_reward += rho
+            # episode_meta_controller_reward += rho
+            episode_meta_controller_reward = rho + episode_meta_controller_reward * params.GAMMA
             agent_needs_over_time[global_index, :] = agent.need.clone()
             action += 1
             global_index += 1
