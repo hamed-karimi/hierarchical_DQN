@@ -52,8 +52,8 @@ def training_meta_controller(controller):
             action += 1
             global_index += 1
 
-            if goal_reached:
-                done = torch.tensor([1])
+            # if goal_reached:
+            #     done = torch.tensor([1])
 
             meta_controller.save_experience(env_map_0, need_0, goal_index,
                                             rho, done,
