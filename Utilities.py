@@ -49,7 +49,8 @@ class Utilities:
                   'PROB_OF_INIT_NEEDS_EQUAL': self.params.PROB_OF_INIT_NEEDS_EQUAL,
                   'Additional comments:': """Getting the goal map at each step in the while loop. Saving the 
                   experiences, at each step. Cost is the sum of needs. We update the needs after one step, 
-                  and the reward is -1 * total_need - cost """
+                  and the reward is -1 * total_need - cost.
+                   all memory experiences have the same probability."""
                   }
         json_object = json.dumps(config, indent=4)
         with open(os.path.join(self.res_folder, 'config.json'), "w") as outfile:
