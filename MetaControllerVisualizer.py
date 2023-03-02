@@ -123,13 +123,41 @@ class MetaControllerVisualizer(Visualizer):
         # ax[r, c].set_box_aspect(aspect=1)
         return ax, r, c + 1
 
-    # def add_selected_goals_plot(self, ax, r, c, episode, selected_goal):
-    #     ax[r, c].set_prop_cycle('color', self.color_options)
-    #     ax[r, c].plot(np.arange(episode), selected_goal[:episode, :], linewidth=1)
-    #     ax[r, c].tick_params(axis='both', which='major', labelsize=9)
-    #     ax[r, c].set_title('Cumulated # of goal selected', fontsize=9)
-    #     # ax[r, c].set_box_aspect(aspect=1)
-    #     return ax, r, c + 1
+    def policynet_values(self, object_locations, object_layers, meta_controller):
+        num_object = object_locations.shape[0]
+        row_num = 5
+        col_num = 5
+        fig, ax = plt.subplots(row_num, col_num, figsize=(15, 12))
+        for fig_num, need in enumerate(self.needs):
+            goals_values_text = []
+            for i in range(self.height):
+                row_table_texts = []
+                for j in range(self.width):
+                    env_map = torch.zeros((1, 1 + num_object, self.height, self.width))  # +1 for agent layer
+                    env_map[0, 0, i, j] = 1
+                    env_map[0, 1:, :, :] = deepcopy(object_layers)
+                    with torch.no_grad():
+                        state = State_batch(env_map.to(self.device), need.unsqueeze(0).to(self.device))
+                        goals_values = meta_controller.policy_net(state).clone()  # 1 * 3
+                        row_table_texts.append('\n'.join([str(round(goals_values[0, v].item(), 2)) for v in range(num_object+1)]))
+                goals_values_text.append(row_table_texts)
+
+            r = fig_num // col_num
+            c = fig_num % col_num
+
+            values_table = ax[r, c].table(cellText=goals_values_text,
+                                          rowLabels=np.arange(self.height),
+                                          colLabels=np.arange(self.width),
+                                          # colWidths=1,
+                                          loc='center')
+            values_table.auto_set_font_size(False)
+            values_table.set_fontsize(8)
+            values_table.scale(1, 2)
+            ax[r, c].set_title(self.get_figure_title(need), fontsize=10)
+            ax[r, c].axis('off')
+
+        plt.tight_layout(pad=0.1, w_pad=1, h_pad=1)
+        return fig, ax
 
     def add_needs_difference_hist(self, ax, agent_needs, needs_range, global_index, r, c):
         ax[r, c].set_prop_cycle('color', self.color_options)

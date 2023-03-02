@@ -72,6 +72,13 @@ def training_meta_controller(controller):
             meta_controller_reward_list.append(meta_controller_reward_sum/params.PRINT_OUTPUT)
             print('avg meta controller reward', meta_controller_reward_sum/params.PRINT_OUTPUT)
             meta_controller_reward_sum = 0
+
+            fig, ax = meta_controller_visualizer.policynet_values(environment.object_locations.clone(),
+                                                                  environment.env_map[0, 1:, :, :],
+                                                                  meta_controller)
+            fig.savefig('{0}/episode_values_{1}.png'.format(res_folder, episode + 1))
+            plt.close()
+
             fig, ax = meta_controller_visualizer.get_goal_directed_actions(environment.object_locations.clone(),
                                                                            environment.env_map[0, 1:, :, :],
                                                                            meta_controller, controller)
