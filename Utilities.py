@@ -47,7 +47,7 @@ class Utilities:
                   'REWARD_OF_OBJECT': self.params.REWARD_OF_OBJECT,
                   'PROB_OF_FAR_OBJECTS_FOR_TWO': self.params.PROB_OF_FAR_OBJECTS_FOR_TWO,
                   'PROB_OF_INIT_NEEDS_EQUAL': self.params.PROB_OF_INIT_NEEDS_EQUAL,
-                  'Additional comments:': """Getting the goal map in the while loop, at each step.
+                  'Additional comments:': """Getting the goal map once before the while loop.
                   Saving the experiences, at each step.
                   Costs are the change in needs."""
                   }
