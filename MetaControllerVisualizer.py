@@ -9,12 +9,13 @@ from copy import deepcopy
 from matplotlib.ticker import FormatStrFormatter
 
 
-def get_predefined_needs():
-    temp_need = [[-10, -5, 0, 5, 10]] * 2
-    need_num = len(temp_need[0]) ** 2
-    need_batch = torch.zeros((need_num, 2))
-    for i, (n1, n2) in enumerate(itertools.product(*temp_need)):
-        need_batch[i, :] = torch.tensor([n1, n2])
+def get_predefined_needs(num_object):
+    temp_need = [[-10, -5, 0, 5, 10]] * num_object
+    need_num = len(temp_need[0]) ** num_object
+    need_batch = torch.zeros((need_num, num_object))
+    ns = np.zeros((1, num_object))
+    for i, ns in enumerate(itertools.product(*temp_need)):
+        need_batch[i, :] = torch.tensor(ns)
     return need_batch
 
 
@@ -27,10 +28,17 @@ class MetaControllerVisualizer(Visualizer):
         self.allactions = [torch.from_numpy(x).unsqueeze(0) for x in allactions_np]
         self.action_mask = np.zeros((self.height, self.width, 1, len(self.allactions)))
         self.initialize_action_masks()
-        self.needs = get_predefined_needs()
+        self.needs = get_predefined_needs(self.num_object)
         self.color_options = [[1, 0, .2], [0, .8, .2], [1, 1, 1]]
+        self.objects_color_name = ['red', 'green']
         self.row_num = 5
         self.col_num = 6
+
+    def get_figure_title(self, need):
+        title = '$n_{0}: {1:.2f}'.format('{'+self.objects_color_name[0]+'}', need[0])
+        for i in range(1, self.num_object):
+            title += ", n_{0}: {1:.2f}$".format('{'+self.objects_color_name[i]+'}', need[i])
+        return title
 
     def get_agent_goal_map_from_selected_goal(self, i, j, goal_index, object_locations):
         agent_goal_map = torch.zeros((1, 2, self.height, self.width))
@@ -64,12 +72,6 @@ class MetaControllerVisualizer(Visualizer):
                                                                                     goal_index=goal,
                                                                                     object_locations=object_locations).to(self.device)
 
-                        # agent_goal_map = torch.zeros((1, 2, self.height, self.width))
-                        # agent_goal_map[0, 0, i, j] = 1  # agent layer
-                        #
-                        # which_goal[i, j] = goal
-                        #
-                        # agent_goal_map[0, 1, object_locations[goal, 0], object_locations[goal, 1]] = 1
                         state = State_batch(agent_goal_map, None)
                         controller_values = controller.policy_net(state)
                         action_mask = torch.tensor(self.action_mask[i, j, :, :])
@@ -92,9 +94,9 @@ class MetaControllerVisualizer(Visualizer):
 
             ax[r, c].quiver(X, Y, arrows_x, arrows_y, scale=10, facecolor=colors)
 
-            ax[r, c].set_title(
-                "$n_{{red}}: {:.2f}, n_{{green}}: {:.2f}$".format(need[0], need[1]),
-                fontsize=10)
+            ax[r, c].set_title(self.get_figure_title(need), fontsize=10)
+            # "$n_{{red}}: {:.2f}, n_{{green}}: {:.2f}$".format(need[0], need[1]),
+
             ax[r, c].set_xticks([])
             ax[r, c].set_yticks([])
             ax[r, c].invert_yaxis()

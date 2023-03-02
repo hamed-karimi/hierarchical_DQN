@@ -29,38 +29,42 @@ def training_meta_controller(controller):
         episode_meta_controller_reward = 0
         episode_meta_controller_loss = 0
         action = 0
-        agent = factory.get_agent(need_num=2)
-        environment = factory.get_environment(environment_initialization_prob_map, num_object=2)
-        initial_env_map = environment.env_map.clone()
-        initial_need = agent.need.clone()
-        goal_map, goal_index = meta_controller.get_goal_map(environment, agent, episode)
-        num_goal_selected[goal_index] += 1
-        # goal_reached = False
+        agent = factory.get_agent()
+        environment = factory.get_environment(environment_initialization_prob_map)
         done = torch.tensor([0])
         while True:
-            last_agent_goal_map = torch.stack(
-                [environment.env_map[0, 0, :, :], goal_map], dim=0) \
-                .unsqueeze(0).clone()
-            action_id = controller.get_action(environment, last_agent_goal_map, episode).clone()
+            env_map_0 = environment.env_map.clone()
+            need_0 = agent.need.clone()
+            goal_map, goal_index = meta_controller.get_goal_map(environment, agent, episode)
+            num_goal_selected[goal_index] += 1
+
+            agent_goal_map_0 = torch.stack([environment.env_map[0, 0, :, :],
+                                            goal_map], dim=0).unsqueeze(0).clone()
+
+            action_id = controller.get_action(environment, agent_goal_map_0, episode).clone()
             rho, _ = agent.take_action(environment, action_id)
-            at_loss = meta_controller.optimize()
-            episode_meta_controller_loss = get_meta_controller_loss(at_loss)
+            episode_meta_controller_reward += rho
 
             goal_reached = agent_reached_goal(agent, environment, goal_index)
-            # episode_meta_controller_reward += rho
-            episode_meta_controller_reward = rho + episode_meta_controller_reward * params.GAMMA
+            # episode_meta_controller_reward = rho + episode_meta_controller_reward * params.GAMMA
+
             agent_needs_over_time[global_index, :] = agent.need.clone()
             action += 1
             global_index += 1
 
             if goal_reached:
                 done = torch.tensor([1])
-            if goal_reached or action == params.EPISODE_LEN:# or rho >= 0:
+
+            meta_controller.save_experience(env_map_0, need_0, goal_index,
+                                            rho, done,
+                                            environment.env_map.clone(),
+                                            agent.need.clone())
+
+            at_loss = meta_controller.optimize()
+            episode_meta_controller_loss += get_meta_controller_loss(at_loss)
+            if goal_reached or action == params.EPISODE_LEN:  # or rho >= 0:
                 break
-        meta_controller.save_experience(initial_env_map, initial_need, goal_index,
-                                        episode_meta_controller_reward, done,
-                                        environment.env_map.clone(),
-                                        agent.need.clone())
+
         meta_controller_reward_sum += episode_meta_controller_reward.item()
         meta_controller_loss_list.append((episode_meta_controller_loss / action))
         if (episode + 1) % params.PRINT_OUTPUT == 0:
@@ -86,10 +90,6 @@ def training_meta_controller(controller):
             ax, r, c = meta_controller_visualizer.get_epsilon_plot(ax, r, c, meta_controller.steps_done,
                                                                    meta_controller_epsilon=meta_controller.epsilon_list)
 
-            # meta_controller_visualizer.add_selected_goals_plot(ax, r, c, episode,
-            #                                                                meta_controller.selected_goal)
-            # meta_controller_visualizer.add_needs_plot(ax, agent_needs_over_time, global_index, r, c)
-
             meta_controller_visualizer.add_needs_difference_hist(ax, agent_needs_over_time, agent.range_of_need, global_index, r, c)
             fig.savefig('{0}/training_proc_episode_{1}.png'.format(res_folder, episode + 1))
             plt.close()
@@ -97,4 +97,5 @@ def training_meta_controller(controller):
         if (episode + 1) % params.META_CONTROLLER_TARGET_UPDATE == 0:
             meta_controller.update_target_net()
             print('META CONTROLLER TARGET NET UPDATED')
+    utility.save_training_config()
     return meta_controller, res_folder

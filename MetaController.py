@@ -16,18 +16,18 @@ class MetaControllerMemory(ReplayMemory):
 
     def get_transition(self, *args):
         Transition = namedtuple('Transition',
-                                ('initial_map', 'initial_need', 'goal_index', 'cum_reward', 'done', 'final_map',
+                                ('initial_map', 'initial_need', 'goal_index', 'reward', 'done', 'final_map',
                                  'final_need'))
         return Transition(*args)
 
 
 class MetaController:
 
-    def __init__(self, batch_size, gamma, episode_num, episode_len, memory_capacity, rewarded_action_selection_ratio):
+    def __init__(self, batch_size, num_objects, gamma, episode_num, episode_len, memory_capacity, rewarded_action_selection_ratio):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.policy_net = hDQN().to(self.device)
+        self.policy_net = hDQN(num_objects=num_objects).to(self.device)
         self.policy_net.apply(weights_init_orthogonal)
-        self.target_net = hDQN().to(self.device)
+        self.target_net = hDQN(num_objects=num_objects).to(self.device)
         self.target_net.load_state_dict(self.policy_net.state_dict())
         self.memory = MetaControllerMemory(memory_capacity)
         self.rewarded_action_selection_ratio = rewarded_action_selection_ratio
@@ -104,7 +104,7 @@ class MetaController:
         initial_map_batch = torch.cat([batch.initial_map[i] for i in range(len(batch.initial_map))]).to(self.device)
         initial_need_batch = torch.cat([batch.initial_need[i] for i in range(len(batch.initial_need))]).to(self.device)
         goal_indices_batch = torch.cat(batch.goal_index).to(self.device)
-        cum_reward_batch = torch.cat(batch.cum_reward).to(self.device)
+        reward_batch = torch.cat(batch.reward).to(self.device)
         done_batch = torch.cat(batch.done).to(self.device)
         final_map_batch = torch.cat([batch.final_map[i] for i in range(len(batch.final_map))]).to(self.device)
         final_need_batch = torch.cat([batch.final_need[i] for i in range(len(batch.final_need))]).to(self.device)
@@ -118,8 +118,11 @@ class MetaController:
         targetnet_max_goal_value = targetnet_goal_values_of_final_state.max(1)[0].detach().float()
         goal_values_of_selected_goals = policynet_goal_values_of_initial_state \
             .gather(dim=1, index=goal_indices_batch.unsqueeze(1))
-        # expected_goal_values = (1 - done_batch) * targetnet_max_goal_value * self.GAMMA + cum_reward_batch
-        expected_goal_values = targetnet_max_goal_value * self.GAMMA + cum_reward_batch
+        expected_goal_values = (1 - done_batch) * targetnet_max_goal_value * self.GAMMA + reward_batch
+        # expected_goal_values = targetnet_max_goal_value * self.GAMMA + reward_batch
+
+        # self.discounted_q.append((targetnet_max_goal_value * self.GAMMA).)
+        # self.cum_reward.append(cum)
 
         criterion = nn.SmoothL1Loss()
         loss = criterion(goal_values_of_selected_goals, expected_goal_values.unsqueeze(1))

@@ -25,12 +25,13 @@ def num_flat_features(x):  # This is a function we added for convenience to find
 
 
 class hDQN(nn.Module):  # meta controller network
-    def __init__(self):
+    def __init__(self, num_objects=2):
         super(hDQN, self).__init__()
-        self.conv1 = nn.Conv2d(3, 32, 4)
-        self.fc1 = nn.Linear(32 + 2, 16)
+        env_layer_num = num_objects + 1  # +1 is agent layer
+        self.conv1 = nn.Conv2d(env_layer_num, 32, 4)
+        self.fc1 = nn.Linear(32 + num_objects, 16)  # needs are equal to # of objects
         self.fc2 = nn.Linear(16, 8)
-        self.fc3 = nn.Linear(8, 3) # 0, 1: goals, 2: stay
+        self.fc3 = nn.Linear(8, env_layer_num) # 0, 1: goals, 2: stay
 
     def forward(self, state_batch):
         env_map = state_batch.env_map

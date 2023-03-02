@@ -14,9 +14,9 @@ class ObjectFactory:
         self.meta_controller = None
         self.params = utility.get_params()
 
-    def get_agent(self, need_num):
+    def get_agent(self):
         agent = Agent(self.params.HEIGHT, self.params.WIDTH,
-                      n=need_num, episode_num=self.params.EPISODE_NUM,
+                      n=self.params.NUM_OBJECTS, episode_num=self.params.EPISODE_NUM,
                       episode_len=self.params.EPISODE_LEN,
                       prob_init_needs_equal=self.params.PROB_OF_INIT_NEEDS_EQUAL,
                       rho_function=self.params.RHO_FUNCTION,
@@ -24,11 +24,11 @@ class ObjectFactory:
         self.agent = deepcopy(agent)
         return agent
 
-    def get_environment(self, probability_map, num_object):
+    def get_environment(self, probability_map):
         env = Environment(self.params.HEIGHT, self.params.WIDTH, self.agent, probability_map,
                           reward_of_object=self.params.REWARD_OF_OBJECT,
                           far_objects_prob=self.params.PROB_OF_FAR_OBJECTS_FOR_TWO,
-                          num_object=num_object)
+                          num_object=self.params.NUM_OBJECTS)
         self.environment = deepcopy(env)
         return env
 
@@ -45,6 +45,7 @@ class ObjectFactory:
 
     def get_meta_controller(self):
         meta_controller = MetaController(self.params.META_CONTROLLER_BATCH_SIZE,
+                                         self.params.NUM_OBJECTS,
                                          self.params.GAMMA,
                                          self.params.EPISODE_NUM,
                                          self.params.EPISODE_LEN,
