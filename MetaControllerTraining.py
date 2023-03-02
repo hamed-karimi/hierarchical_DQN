@@ -13,7 +13,7 @@ def training_meta_controller(controller):
     params = utility.get_params()
 
     res_folder = utility.make_res_folder(sub_folder='MetaController')
-
+    utility.save_training_config()
     global_index = 0
     meta_controller_reward_list = []
     meta_controller_reward_sum = 0
@@ -31,11 +31,11 @@ def training_meta_controller(controller):
         action = 0
         agent = factory.get_agent()
         environment = factory.get_environment(environment_initialization_prob_map)
-        env_map_0 = environment.env_map.clone()
-        need_0 = agent.need.clone()
-        goal_map, goal_index = meta_controller.get_goal_map(environment, agent, episode)
         done = torch.tensor([0])
         while True:
+            env_map_0 = environment.env_map.clone()
+            need_0 = agent.need.clone()
+            goal_map, goal_index = meta_controller.get_goal_map(environment, agent, episode)
             num_goal_selected[goal_index] += 1
 
             agent_goal_map_0 = torch.stack([environment.env_map[0, 0, :, :],
@@ -56,7 +56,7 @@ def training_meta_controller(controller):
                 done = torch.tensor([1])
 
             meta_controller.save_experience(env_map_0, need_0, goal_index,
-                                            episode_meta_controller_reward, done,
+                                            rho, done,
                                             environment.env_map.clone(),
                                             agent.need.clone())
 
@@ -98,5 +98,5 @@ def training_meta_controller(controller):
         if (episode + 1) % params.META_CONTROLLER_TARGET_UPDATE == 0:
             meta_controller.update_target_net()
             print('META CONTROLLER TARGET NET UPDATED')
-    utility.save_training_config()
+
     return meta_controller, res_folder
