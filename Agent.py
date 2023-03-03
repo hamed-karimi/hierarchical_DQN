@@ -81,8 +81,8 @@ class Agent:
         at_cost = environment.get_cost(action_id)
         at_total_need = self.get_total_need()
         last_total_need = self.total_need
-        # rho = last_total_need - at_total_need - at_cost
-        rho = (-1) * at_total_need - at_cost
+        rho = last_total_need - at_total_need - at_cost
+        # rho = (-1) * at_total_need - at_cost
         goal_reaching_reward = torch.sub(f, at_cost).squeeze()
         self.total_need = deepcopy(at_total_need)
         return rho.unsqueeze(0), goal_reaching_reward

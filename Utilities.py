@@ -11,14 +11,15 @@ class Utilities:
         with open(json_file_path, 'r') as json_file:
             self.params = json.load(json_file,
                                     object_hook=lambda d: SimpleNamespace(**d))
+
     def get_params(self):
         return self.params
 
     def make_res_folder(self, sub_folder=''):
         now = datetime.now().strftime("%d-%m-%Y_%H-%M")
         folder = 'tr{0}_len{1}_{2}'.format(self.params.EPISODE_NUM,
-                                            self.params.EPISODE_LEN,
-                                            now)
+                                           self.params.EPISODE_LEN,
+                                           now)
         dirname = os.path.join(folder, sub_folder)
 
         if os.path.exists(folder) and not os.path.exists(dirname):
@@ -28,7 +29,7 @@ class Utilities:
         self.res_folder = dirname
         return dirname
 
-    def get_environment_probability_map(self, style, params): # style: 'equal', or 'edges'
+    def get_environment_probability_map(self, style, params):  # style: 'equal', or 'edges'
         if style == 'equal':
             prob_map = np.ones(params.HEIGHT * params.WIDTH) * 100 / (params.HEIGHT * params.WIDTH)
         elif style == 'edges':
@@ -47,12 +48,12 @@ class Utilities:
                   'REWARD_OF_OBJECT': self.params.REWARD_OF_OBJECT,
                   'PROB_OF_FAR_OBJECTS_FOR_TWO': self.params.PROB_OF_FAR_OBJECTS_FOR_TWO,
                   'PROB_OF_INIT_NEEDS_EQUAL': self.params.PROB_OF_INIT_NEEDS_EQUAL,
-                  'Additional comments:': """Getting the goal map at each step in the while loop. Saving the 
-                  experiences, at each step. Cost is the sum of needs. We update the needs after one step, 
-                  and the reward is -1 * total_need - cost.
-                   all memory experiences have the same probability."""
+                  'Additional comments:': ('Getting the goal map at each step in the while loop. Saving the'
+                                           'experiences, at each step.\nCost is the sum of needs.\nWe update the '
+                                           'needs after one step, and the reward is change in needs minus cost.\nAll '
+                                           'memory experiences have the same probability.'
+                                           '\nNo (1-done)')
                   }
         json_object = json.dumps(config, indent=4)
         with open(os.path.join(self.res_folder, 'config.json'), "w") as outfile:
             outfile.write(json_object)
-
