@@ -6,11 +6,10 @@ import warnings
 
 
 class Environment:
-    def __init__(self, h, w, agent, probability_map, reward_of_object, far_objects_prob, num_object, pre_located_objects, cost_scaler):  # nObj is the number of each type of object
+    def __init__(self, h, w, agent, probability_map, reward_of_object, far_objects_prob, num_object, pre_located_objects):  # nObj is the number of each type of object
         self.channels = 1 + num_object  # +1 is for agent which is the first layer
         self.height = h
         self.width = w
-        self.cost_scaler = cost_scaler
         self.nObj = num_object
         self.probability_map = probability_map
         self.far_objects_prob = far_objects_prob

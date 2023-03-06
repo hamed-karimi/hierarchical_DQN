@@ -8,13 +8,14 @@ from itertools import product
 
 class Agent:
     def __init__(self, h, w, n, episode_num, episode_len, prob_init_needs_equal, predefined_location,
-                 rho_function='ReLU',epsilon_function='Linear', ):  # n: number of needs
+                 need_change_different_on_action, rho_function='ReLU',epsilon_function='Linear'):  # n: number of needs
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.height = h
         self.width = w
         self.location = self.initial_location(predefined_location)
         self.num_need = n
         self.range_of_need = [-12, 12]
+        self.need_change_on_action = need_change_different_on_action # True of False
         self.prob_init_needs_equal = prob_init_needs_equal
         self.need = self.set_need()
         self.steps_done = 0
@@ -49,9 +50,9 @@ class Agent:
             return torch.tensor(predefined_location)
         return torch.from_numpy(np.asarray((np.random.randint(self.height), np.random.randint(self.width)))).unsqueeze(0)
 
-    def update_need_after_step(self):
+    def update_need_after_step(self, moving_cost):
         for i in range(self.num_need):
-            self.need[0, i] += self.lambda_need
+            self.need[0, i] += (self.lambda_need + self.need_change_on_action * moving_cost / 4)
 
     def update_need_after_reward(self, reward):
         self.need = self.need - reward
@@ -79,13 +80,14 @@ class Agent:
     #     environment.update_agent_location_on_map(self)
 
     def take_action(self, environment, action_id):
-        self.update_need_after_step()
         selected_action = environment.allactions[action_id].squeeze()  # to device
         self.location[0] += selected_action
+        at_cost = environment.get_cost(action_id)
+        self.update_need_after_step(at_cost)
+
         environment.update_agent_location_on_map(self)
         f, _ = environment.get_reward()
         self.update_need_after_reward(f)
-        at_cost = environment.get_cost(action_id)
         at_total_need = self.get_total_need()
         last_total_need = self.total_need
         # rho = last_total_need - at_total_need - at_cost

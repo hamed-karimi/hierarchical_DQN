@@ -18,7 +18,9 @@ class ObjectFactory:
         agent = Agent(self.params.HEIGHT, self.params.WIDTH, n=self.params.NUM_OBJECTS,
                       episode_num=self.params.EPISODE_NUM, episode_len=self.params.EPISODE_LEN,
                       prob_init_needs_equal=self.params.PROB_OF_INIT_NEEDS_EQUAL, predefined_location=pre_location,
-                      rho_function=self.params.RHO_FUNCTION, epsilon_function=self.params.EPSILON_FUNCTION)
+                      need_change_different_on_action=self.params.NEEDS_CHANGE_REGARDING_TO_ACTION,
+                      rho_function=self.params.RHO_FUNCTION,
+                      epsilon_function=self.params.EPSILON_FUNCTION)
         self.agent = deepcopy(agent)
         return agent
 
@@ -32,8 +34,7 @@ class ObjectFactory:
         env = Environment(self.params.HEIGHT, self.params.WIDTH, self.agent, probability_map,
                           reward_of_object=self.params.REWARD_OF_OBJECT,
                           far_objects_prob=self.params.PROB_OF_FAR_OBJECTS_FOR_TWO,
-                          num_object=num_objects, pre_located_objects=pre_located_objects,
-                          cost_scaler=self.params.COST_SCALER)
+                          num_object=num_objects, pre_located_objects=pre_located_objects)
         self.environment = deepcopy(env)
         return env
 
