@@ -52,7 +52,7 @@ class Agent:
 
     def update_need_after_step(self, moving_cost):
         for i in range(self.num_need):
-            self.need[0, i] += (self.lambda_need + self.need_change_on_action * moving_cost / 4)
+            self.need[0, i] += (self.lambda_need + self.need_change_on_action * moving_cost / 2)
 
     def update_need_after_reward(self, reward):
         self.need = self.need - reward
