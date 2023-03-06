@@ -49,8 +49,7 @@ class Utilities:
                   'PROB_OF_FAR_OBJECTS_FOR_TWO': self.params.PROB_OF_FAR_OBJECTS_FOR_TWO,
                   'PROB_OF_INIT_NEEDS_EQUAL': self.params.PROB_OF_INIT_NEEDS_EQUAL,
                   'Additional comments:': ('Getting the goal map at each step in the while loop. Saving the'
-                                           'experiences, at each step.\nCost is the sum of needs.\nWe update the '
-                                           'needs after one step, and the reward is change in needs minus cost.\nAll '
+                                           'experiences, at each step.\nCost is the sum of needs.\nAll '
                                            'memory experiences have the same probability.'
                                            '\nNo (1-done)')
                   }
