@@ -6,17 +6,18 @@ import warnings
 
 
 class Environment:
-    def __init__(self, h, w, agent, probability_map, reward_of_object, far_objects_prob, num_object):  # nObj is the number of each type of object
+    def __init__(self, h, w, agent, probability_map, reward_of_object, far_objects_prob, num_object, pre_located_objects, cost_scaler):  # nObj is the number of each type of object
         self.channels = 1 + num_object  # +1 is for agent which is the first layer
         self.height = h
         self.width = w
+        self.cost_scaler = cost_scaler
         self.nObj = num_object
         self.probability_map = probability_map
         self.far_objects_prob = far_objects_prob
         self.agent_location = agent.get_location()
         self.env_map = torch.zeros((1, self.channels, self.height, self.width),
                                    dtype=torch.float32)  # the 1 is for the env_map can be matched with the dimesions of weights (8, 2, 4, 4)
-        self.object_locations = self.init_object_locations()
+        self.object_locations = self.init_object_locations(pre_located_objects)
         self.update_agent_location_on_map(agent)
         self.reward_of_object = [reward_of_object] * agent.num_need
         self.cost_of_staying = 0
@@ -29,9 +30,15 @@ class Environment:
         if self.nObj != num_agent_need:
             warnings.warn("The number of needs and objects are not equal")
 
-    def init_objects_randomly(self):
+    def init_objects_randomly(self, pre_located_objects): # pre_located_objects is a list
         object_locations = torch.zeros((self.nObj, 2), dtype=torch.int16)
+        for i in range(len(pre_located_objects)):
+            if len(pre_located_objects[i]) > 0:
+                object_locations[i, :] = torch.Tensor(pre_located_objects[i])
+                self.env_map[0, 1 + i, pre_located_objects[i][0], pre_located_objects[i][1]] = 1
         for at_obj in range(self.nObj):
+            if len(pre_located_objects[at_obj]) > 0:
+                continue
             do = 1
             while do:
                 # sample = np.array([np.random.randint(self.height), np.random.randint(self.width)])
@@ -69,12 +76,12 @@ class Environment:
 
         return object_locations
 
-    def init_object_locations(self):  # Place objects on the map
+    def init_object_locations(self, pre_located_objects):  # Place objects on the map
         p = random.uniform(0, 1)
         if p <= self.far_objects_prob:
             return self.init_two_objects_far_from_each_other()
         else:
-            return self.init_objects_randomly()
+            return self.init_objects_randomly(pre_located_objects)
 
     def update_agent_location_on_map(self,
                                      agent):  # This is called by the agent (take_action method) after the action is taken

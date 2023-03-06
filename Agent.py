@@ -7,10 +7,12 @@ from itertools import product
 
 
 class Agent:
-    def __init__(self, h, w, n, episode_num, episode_len, prob_init_needs_equal,
-                 rho_function='ReLU',epsilon_function='Linear'):  # n: number of needs
+    def __init__(self, h, w, n, episode_num, episode_len, prob_init_needs_equal, predefined_location,
+                 rho_function='ReLU',epsilon_function='Linear', ):  # n: number of needs
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.location = torch.from_numpy(np.asarray((np.random.randint(h), np.random.randint(w)))).unsqueeze(0)
+        self.height = h
+        self.width = w
+        self.location = self.initial_location(predefined_location)
         self.num_need = n
         self.range_of_need = [-12, 12]
         self.prob_init_needs_equal = prob_init_needs_equal
@@ -20,7 +22,7 @@ class Agent:
         self.episode_len = episode_len
         self.EPS_START = 0.9
         self.EPS_END = 0.05
-        self.lambda_need = .8  # How much the need increases after each action
+        self.lambda_need = .4  # How much the need increases after each action
         self.relu = ReLU()
         total_need_functions = {'ReLU': self.relu, 'PolyReLU': self.poly_relu}
         self.rho_function = total_need_functions[rho_function]
@@ -41,6 +43,11 @@ class Agent:
             need = torch.rand((1, self.num_need))
         need = (self.range_of_need[1] - self.range_of_need[0]) * need + self.range_of_need[0]
         return need
+
+    def initial_location(self, predefined_location): # predefined_location is a list
+        if len(predefined_location[0]) > 0:
+            return torch.tensor(predefined_location)
+        return torch.from_numpy(np.asarray((np.random.randint(self.height), np.random.randint(self.width)))).unsqueeze(0)
 
     def update_need_after_step(self):
         for i in range(self.num_need):

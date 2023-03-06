@@ -41,8 +41,8 @@ def training_controller(device):
         cum_reward = 0
         action = 0
 
-        agent = factory.get_agent(need_num=1)
-        environment = factory.get_environment(environment_initialization_prob_map, num_object=1)
+        agent = factory.get_agent(pre_location=[[]])
+        environment = factory.get_environment(environment_initialization_prob_map, pre_located_objects=[[]])
         while action < params.EPISODE_LEN:
             last_agent_goal_map = environment.env_map.clone()
             action_id = controller.get_action(environment, environment.env_map, episode).clone()
@@ -73,8 +73,8 @@ def training_controller(device):
                                                               controller.steps_done,
                                                               controller_epsilons=controller.epsilon_list)
 
-            controller_visualizer.get_reward_plot(ax, r, c,
-                                                  controller_reward=moving_avg_controller_reward)
+            # controller_visualizer.get_reward_plot(ax, r, c,
+            #                                       controller_reward=moving_avg_controller_reward)
 
             fig.savefig('{0}/episode_{1}.png'.format(res_folder, episode + 1))
             plt.close()

@@ -18,19 +18,23 @@ def training_meta_controller(controller):
     meta_controller_reward_list = []
     meta_controller_reward_sum = 0
     meta_controller_loss_list = []
-    num_goal_selected = [0, 0, 0] # 0, 1: goals, 2: stay
+    num_goal_selected = [0, 0, 0]  # 0, 1: goals, 2: stay
     agent_needs_over_time = np.zeros((params.EPISODE_NUM * params.EPISODE_LEN, 2), dtype=np.float16)
 
     factory = ObjectFactory(utility)
     meta_controller = factory.get_meta_controller()
     meta_controller_visualizer = MetaControllerVisualizer(utility)
     environment_initialization_prob_map = np.ones(params.HEIGHT * params.WIDTH) * 100 / (params.HEIGHT * params.WIDTH)
+    pre_located_objects = [[]] * params.NUM_OBJECTS
+    pre_located_agent = [[]]
     for episode in range(params.EPISODE_NUM):
         episode_meta_controller_reward = 0
         episode_meta_controller_loss = 0
         action = 0
-        agent = factory.get_agent()
-        environment = factory.get_environment(environment_initialization_prob_map)
+        agent = factory.get_agent(pre_located_agent)
+        environment = factory.get_environment(environment_initialization_prob_map, pre_located_objects)
+        pre_located_objects = [[]] * params.NUM_OBJECTS
+        pre_located_agent = [[]]
         done = torch.tensor([0])
         while True:
             env_map_0 = environment.env_map.clone()
@@ -53,7 +57,12 @@ def training_meta_controller(controller):
             global_index += 1
 
             # if goal_reached:
-            #     done = torch.tensor([1])
+            #     if goal_index.item() < params.NUM_OBJECTS:  # reached goal is an object
+            #         pre_located_agent = agent.location.tolist()
+            #         for i in range(environment.object_locations.shape[0]):
+            #             if i != goal_index.item():
+            #                 pre_located_objects[i] = environment.object_locations[i, :].tolist()
+                # done = torch.tensor([1])
 
             meta_controller.save_experience(env_map_0, need_0, goal_index,
                                             rho, done,
@@ -69,8 +78,8 @@ def training_meta_controller(controller):
         meta_controller_reward_sum += episode_meta_controller_reward.item()
         meta_controller_loss_list.append((episode_meta_controller_loss / action))
         if (episode + 1) % params.PRINT_OUTPUT == 0:
-            meta_controller_reward_list.append(meta_controller_reward_sum/params.PRINT_OUTPUT)
-            print('avg meta controller reward', meta_controller_reward_sum/params.PRINT_OUTPUT)
+            meta_controller_reward_list.append(meta_controller_reward_sum / params.PRINT_OUTPUT)
+            print('avg meta controller reward', meta_controller_reward_sum / params.PRINT_OUTPUT)
             meta_controller_reward_sum = 0
 
             fig, ax = meta_controller_visualizer.policynet_values(environment.object_locations.clone(),
@@ -98,7 +107,8 @@ def training_meta_controller(controller):
             ax, r, c = meta_controller_visualizer.get_epsilon_plot(ax, r, c, meta_controller.steps_done,
                                                                    meta_controller_epsilon=meta_controller.epsilon_list)
 
-            meta_controller_visualizer.add_needs_difference_hist(ax, agent_needs_over_time, agent.range_of_need, global_index, r, c)
+            meta_controller_visualizer.add_needs_difference_hist(ax, agent_needs_over_time, agent.range_of_need,
+                                                                 global_index, r, c)
             fig.savefig('{0}/training_proc_episode_{1}.png'.format(res_folder, episode + 1))
             plt.close()
 
