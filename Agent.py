@@ -15,7 +15,7 @@ class Agent:
         self.location = self.initial_location(predefined_location)
         self.num_need = n
         self.range_of_need = [-12, 12]
-        self.need_change_on_action = need_change_different_on_action # True of False
+        self.need_change_on_action = need_change_different_on_action  # True or False
         self.prob_init_needs_equal = prob_init_needs_equal
         self.need = self.set_need()
         self.steps_done = 0
