@@ -33,9 +33,14 @@ class hDQN(nn.Module):  # meta controller network
         super(hDQN, self).__init__()
         env_layer_num = params.OBJECT_TYPE_NUM + 1  # +1 for agent layer
         padding = (8 - params.WIDTH) // 2
-        self.conv1 = nn.Conv2d(env_layer_num, 32, 4, padding=padding)
-        self.max_pool = nn.MaxPool2d(5)
-        self.fc1 = nn.Linear(32 + params.OBJECT_TYPE_NUM, 16)  # needs are equal to # of objects
+        kernel_size = min(params.WIDTH, params.DQN_CONV1_KERNEL)
+        self.conv1 = nn.Conv2d(in_channels=env_layer_num,
+                               out_channels=params.DQN_CONV1_OUT_CHANNEL,
+                               kernel_size=kernel_size,
+                               padding=padding)
+        self.max_pool = nn.MaxPool2d(params.WIDTH-kernel_size+1)
+        self.fc1 = nn.Linear(in_features=params.DQN_CONV1_OUT_CHANNEL + params.OBJECT_TYPE_NUM,
+                             out_features=16)  # needs are equal to # of objects
         self.fc2 = nn.Linear(16, 8)
         self.fc3 = nn.Linear(8, env_layer_num)  # 0, 1: goals, 2: stay
 

@@ -27,7 +27,7 @@ def training_meta_controller(controller):
     environment_initialization_prob_map = np.ones(params.HEIGHT * params.WIDTH) * 100 / (params.HEIGHT * params.WIDTH)
     pre_located_objects = [[]] * params.OBJECT_TYPE_NUM
     pre_located_agent = [[]]
-    for episode in range(params.EPISODE_NUM):
+    for episode in range(params.META_CONTROLLER_EPISODE_NUM):
         episode_meta_controller_reward = 0
         episode_meta_controller_loss = 0
         action = 0

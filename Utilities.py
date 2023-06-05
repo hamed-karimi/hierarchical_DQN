@@ -1,6 +1,7 @@
 import json
 from types import SimpleNamespace
 import os
+import shutil
 from datetime import datetime
 import numpy as np
 
@@ -12,16 +13,14 @@ class Utilities:
             self.params = json.load(json_file,
                                     object_hook=lambda d: SimpleNamespace(**d))
 
-    def initialize_constants(self):
-        self.params.CONV1_KERNEL = min(4, self.params.WIDTH)
-        self.params.CONV1_OUT = 32
-        self.params.LINEAR_IN = self.params.CONV1_OUT
+    # def initialize_constants(self):
+    #     self.params.CONV1_KERNEL = min(4, self.params.WIDTH)
+    #     self.params.CONV1_OUT = 32
+    #     self.params.LINEAR_IN = self.params.CONV1_OUT
 
     def make_res_folder(self, sub_folder=''):
         now = datetime.now().strftime("%d-%m-%Y_%H-%M")
-        folder = 'tr{0}_len{1}_{2}'.format(self.params.EPISODE_NUM,
-                                           self.params.EPISODE_LEN,
-                                           now)
+        folder = 'tr{0}'.format(now)
         dirname = os.path.join(folder, sub_folder)
 
         if os.path.exists(folder) and not os.path.exists(dirname):
@@ -29,6 +28,7 @@ class Utilities:
         elif not os.path.exists(dirname):
             os.makedirs(dirname)
         self.res_folder = dirname
+        shutil.copy('./Parameters.json', self.res_folder)
         return dirname
 
     def get_environment_probability_map(self, style, params):  # style: 'equal', or 'edges'

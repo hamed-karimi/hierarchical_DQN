@@ -4,6 +4,7 @@ from Visualizer import Visualizer
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 from State_batch import State_batch
 from matplotlib.ticker import FormatStrFormatter
 
@@ -11,6 +12,7 @@ from matplotlib.ticker import FormatStrFormatter
 class ControllerVisualizer(Visualizer):
     def __init__(self, utility):
         super().__init__(utility)
+        self.episode_num = utility.params.CONTROLLER_EPISODE_NUM
         self.row_num = self.height - 1
         self.col_num = self.width + 2
         self.scale = self.row_num * self.col_num / (self.width//2)
@@ -18,6 +20,7 @@ class ControllerVisualizer(Visualizer):
 
     def get_greedy_values_figure(self, controller):
         fig, ax = plt.subplots(self.row_num, self.col_num, figsize=(15, 10))
+        # mpl.rcParams['ytick.major.pad'] = 1
         r, c = 0, 0
         for x in range(self.height):
             for y in range(self.width):
@@ -60,9 +63,16 @@ class ControllerVisualizer(Visualizer):
 
     def get_epsilon_plot(self, ax, r, c, steps_done, **kwargs):
         ax[r, c].scatter(np.arange(steps_done), kwargs['controller_epsilons'], s=.1)
-        ax[r, c].tick_params(axis='both', which='major', labelsize=5)
-        ax[r, c].set_title('Epsilon', fontsize=5)
+        ax[r, c].tick_params(axis='both', which='major', labelsize=5, pad=.5)
+        ax[r, c].set_title('Epsilon', fontsize=8, pad=1)
         ax[r, c].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         ax[r, c].set_box_aspect(aspect=1)
         return ax, r, c + 1
 
+    def get_reward_plot(self, ax, r, c, controller_reward):
+        ax[r, c].plot(controller_reward)
+        ax[r, c].tick_params(axis='both', which='major', labelsize=5, pad=.5)
+        ax[r, c].set_title('Episode reward', fontsize=8, pad=1)
+        ax[r, c].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+        ax[r, c].set_box_aspect(aspect=1)
+        return ax, r, c + 1

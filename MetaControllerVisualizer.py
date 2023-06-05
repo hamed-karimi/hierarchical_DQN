@@ -22,7 +22,7 @@ def get_predefined_needs(num_object):
 class MetaControllerVisualizer(Visualizer):
     def __init__(self, utility):
         super().__init__(utility)
-
+        self.episode_num = utility.params.META_CONTROLLER_EPISODE_NUM
         allactions_np = [np.array([0, 0]), np.array([1, 0]), np.array([-1, 0]), np.array([0, 1]), np.array([0, -1]),
                          np.array([1, 1]), np.array([-1, -1]), np.array([-1, 1]), np.array([1, -1])]
         self.allactions = [torch.from_numpy(x).unsqueeze(0) for x in allactions_np]

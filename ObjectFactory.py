@@ -16,7 +16,6 @@ class ObjectFactory:
 
     def get_agent(self, pre_location):
         agent = Agent(self.params.HEIGHT, self.params.WIDTH, n=self.params.OBJECT_TYPE_NUM,
-                      episode_num=self.params.EPISODE_NUM, episode_len=self.params.EPISODE_LEN,
                       prob_init_needs_equal=self.params.PROB_OF_INIT_NEEDS_EQUAL, predefined_location=pre_location,
                       rho_function=self.params.RHO_FUNCTION,
                       epsilon_function=self.params.EPSILON_FUNCTION)
@@ -41,7 +40,7 @@ class ObjectFactory:
         controller = Controller(self.params.TRAIN_CONTROLLER,
                                 self.params.CONTROLLER_BATCH_SIZE,
                                 self.params.GAMMA,
-                                self.params.EPISODE_NUM,
+                                self.params.CONTROLLER_EPISODE_NUM,
                                 self.params.EPISODE_LEN,
                                 self.params.CONTROLLER_MEMORY_CAPACITY,
                                 self.params.REWARDED_ACTION_SAMPLING_PROBABILITY_RATIO)
@@ -52,7 +51,7 @@ class ObjectFactory:
         meta_controller = MetaController(self.params.META_CONTROLLER_BATCH_SIZE,
                                          self.params.OBJECT_TYPE_NUM,
                                          self.params.GAMMA,
-                                         self.params.EPISODE_NUM,
+                                         self.params.META_CONTROLLER_EPISODE_NUM,
                                          self.params.EPISODE_LEN,
                                          self.params.META_CONTROLLER_MEMORY_CAPACITY,
                                          self.params.REWARDED_ACTION_SAMPLING_PROBABILITY_RATIO)

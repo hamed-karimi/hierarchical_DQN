@@ -2,7 +2,6 @@ import numpy as np
 from copy import deepcopy
 import torch
 from ControllerVisualizer import ControllerVisualizer
-import matplotlib.pyplot as plt
 import matplotlib as mpl
 from ObjectFactory import ObjectFactory
 from Utilities import Utilities
@@ -29,8 +28,8 @@ def training_controller(device):
     res_folder = utility.make_res_folder(sub_folder='Controller')
 
     global_index = 0
-    episodes_mean_controller_reward = 0
-    moving_avg_controller_reward = []
+    episodes_mean_controller_reward = []
+    # moving_avg_controller_reward = []
     episodes_mean_controller_loss = []
     moving_avg_controller_loss = []
 
@@ -38,7 +37,7 @@ def training_controller(device):
     controller = factory.get_controller()
     controller_visualizer = ControllerVisualizer(utility)
     environment_initialization_prob_map = np.ones(params.HEIGHT * params.WIDTH) * 100 / (params.HEIGHT * params.WIDTH)
-    for episode in range(params.EPISODE_NUM):
+    for episode in range(params.CONTROLLER_EPISODE_NUM):
         episode_controller_loss = 0
         cum_reward = 0
         action = 0
@@ -66,25 +65,25 @@ def training_controller(device):
             if internal_reward > 8.0:
                 break
 
-        episodes_mean_controller_reward += cum_reward / action
+        episodes_mean_controller_reward.append(cum_reward / action)
         episodes_mean_controller_loss.append(episode_controller_loss / action)
         if (episode + 1) % params.PRINT_OUTPUT == 0:
-            moving_avg_controller_reward.append(episodes_mean_controller_reward / params.PRINT_OUTPUT)
-            print('avg internal reward', episodes_mean_controller_reward / params.PRINT_OUTPUT, ' ')
+            # moving_avg_controller_reward.append(episodes_mean_controller_reward / params.PRINT_OUTPUT)
+            print('avg internal reward', sum(episodes_mean_controller_reward) / (episode+1), ' ')
             fig, ax, r, c = controller_visualizer.get_greedy_values_figure(controller)
 
             # r, c = 6, 5
             ax, r, c = controller_visualizer.get_epsilon_plot(ax, r, c,
                                                               controller.steps_done,
                                                               controller_epsilons=controller.epsilon_list)
+            ax, r, c = controller_visualizer.get_reward_plot(ax, r, c,
+                                                             controller_reward=episodes_mean_controller_reward)
             for ax_i in range(c, ax.shape[1]):
                 fig.delaxes(ax=ax[r, ax_i])
-            # controller_visualizer.get_reward_plot(ax, r, c,
-            #                                       controller_reward=moving_avg_controller_reward)
 
             fig.savefig('{0}/episode_{1}.png'.format(res_folder, episode + 1))
             plt.close()
-            episodes_mean_controller_reward = 0
+            # episodes_mean_controller_reward = 0
 
         if (episode + 1) % params.CONTROLLER_TARGET_UPDATE == 0:
             controller.update_target_net()

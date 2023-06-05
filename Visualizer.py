@@ -45,7 +45,7 @@ class Visualizer:
         self.allactions = [torch.from_numpy(x).unsqueeze(0) for x in allactions_np]
         self.action_mask = np.zeros((self.height, self.width, 1, len(self.allactions)))
         self.initialize_action_masks()
-        self.episode_num = params.EPISODE_NUM
+        self.episode_num = None
         self.episode_len = params.EPISODE_LEN
 
     def get_epsilon_plot(self, ax, r, c, steps_done, **kwargs):
