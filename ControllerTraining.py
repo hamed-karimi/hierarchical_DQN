@@ -48,15 +48,15 @@ def training_controller(device):
                                               probability_map=environment_initialization_prob_map,
                                               pre_located_objects=[[], []])
         while action < params.EPISODE_LEN:
-            last_goal_map = environment.env_map.clone()
-            action_id = controller.get_action(environment, environment.env_map, episode).clone()
+            last_goal_map = environment.env_map.clone().to(device)
+            action_id = controller.get_action(environment, environment.env_map, episode).clone().to(device)
             _, reward = agent.take_action(environment, action_id)
-            internal_reward = reward.unsqueeze(0).clone()
+            internal_reward = reward.unsqueeze(0).clone().to(device)
             done = torch.tensor([1]) if internal_reward > 8.0 else torch.tensor([0])
             at_agent_goal_map = environment.env_map.clone().to(device)
 
             controller.save_experience(last_goal_map, action_id,
-                                       at_agent_goal_map, internal_reward, done,
+                                       at_agent_goal_map, internal_reward, done.to(device),
                                        torch.from_numpy(environment.get_action_mask()).to(device))
             cum_reward += internal_reward.item()
             controller_at_loss = controller.optimize()
