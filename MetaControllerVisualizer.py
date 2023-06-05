@@ -28,7 +28,7 @@ class MetaControllerVisualizer(Visualizer):
         self.allactions = [torch.from_numpy(x).unsqueeze(0) for x in allactions_np]
         self.action_mask = np.zeros((self.height, self.width, 1, len(self.allactions)))
         self.initialize_action_masks()
-        self.needs = get_predefined_needs(self.num_object)
+        self.needs = get_predefined_needs(self.object_type_num)
         self.color_options = [[1, 0, .2], [0, .8, .2], [1, 1, 1]]
         self.objects_color_name = ['red', 'green']
         self.row_num = 5
@@ -36,7 +36,7 @@ class MetaControllerVisualizer(Visualizer):
 
     def get_figure_title(self, need):
         title = '$n_{0}: {1:.2f}'.format('{'+self.objects_color_name[0]+'}', need[0])
-        for i in range(1, self.num_object):
+        for i in range(1, self.object_type_num):
             title += ", n_{0}: {1:.2f}$".format('{'+self.objects_color_name[i]+'}', need[i])
         return title
 

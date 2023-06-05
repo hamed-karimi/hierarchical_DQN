@@ -9,19 +9,21 @@ from Utilities import Utilities
 from AgentExplorationFunctions import *
 
 
-def get_existing_controller(utility):
-    params = utility.get_params()
+def get_existing_controller(utility): # "./tr100000_len100_07-06-2022_11-15/Controller"
+    params = utility.params
     factory = ObjectFactory(utility)
     controller = factory.get_controller()
-    controller.load_target_net_from_memory(params.CONTROLLER_DIRECTORY)
+    if params.CONTROLLER_DIRECTORY != '':
+        controller.load_target_net_from_memory(params.CONTROLLER_DIRECTORY)
+
     res_folder = utility.make_res_folder(sub_folder='Controller')
     return deepcopy(controller), res_folder
 
 
 def training_controller(device):
-    utility = Utilities('Parameters.json')
-    params = utility.get_params()
-    if params.CONTROLLER_DIRECTORY != '':
+    utility = Utilities()
+    params = utility.params
+    if not params.TRAIN_CONTROLLER:
         controller, res_folder = get_existing_controller(utility)
         return controller, res_folder
     res_folder = utility.make_res_folder(sub_folder='Controller')
@@ -35,23 +37,25 @@ def training_controller(device):
     factory = ObjectFactory(utility)
     controller = factory.get_controller()
     controller_visualizer = ControllerVisualizer(utility)
-    environment_initialization_prob_map = np.ones(params.HEIGHT * params.WIDTH) * 100 / 16
+    environment_initialization_prob_map = np.ones(params.HEIGHT * params.WIDTH) * 100 / (params.HEIGHT * params.WIDTH)
     for episode in range(params.EPISODE_NUM):
         episode_controller_loss = 0
         cum_reward = 0
         action = 0
 
-        agent = factory.get_agent(pre_location=[[]])
-        environment = factory.get_environment(environment_initialization_prob_map, pre_located_objects=[[]])
+        agent = factory.get_agent(pre_location=[[], []])
+        environment = factory.get_environment(few_many=['few', 'many'],
+                                              probability_map=environment_initialization_prob_map,
+                                              pre_located_objects=[[], []])
         while action < params.EPISODE_LEN:
-            last_agent_goal_map = environment.env_map.clone()
+            last_goal_map = environment.env_map.clone()
             action_id = controller.get_action(environment, environment.env_map, episode).clone()
             _, reward = agent.take_action(environment, action_id)
             internal_reward = reward.unsqueeze(0).clone()
             done = torch.tensor([1]) if internal_reward > 8.0 else torch.tensor([0])
             at_agent_goal_map = environment.env_map.clone().to(device)
 
-            controller.save_experience(last_agent_goal_map, action_id,
+            controller.save_experience(last_goal_map, action_id,
                                        at_agent_goal_map, internal_reward, done,
                                        torch.from_numpy(environment.get_action_mask()).to(device))
             cum_reward += internal_reward.item()
@@ -67,12 +71,14 @@ def training_controller(device):
         if (episode + 1) % params.PRINT_OUTPUT == 0:
             moving_avg_controller_reward.append(episodes_mean_controller_reward / params.PRINT_OUTPUT)
             print('avg internal reward', episodes_mean_controller_reward / params.PRINT_OUTPUT, ' ')
-            fig, ax = controller_visualizer.get_greedy_values_figure(controller)
-            r, c = 2, 4
+            fig, ax, r, c = controller_visualizer.get_greedy_values_figure(controller)
+
+            # r, c = 6, 5
             ax, r, c = controller_visualizer.get_epsilon_plot(ax, r, c,
                                                               controller.steps_done,
                                                               controller_epsilons=controller.epsilon_list)
-
+            for ax_i in range(c, ax.shape[1]):
+                fig.delaxes(ax=ax[r, ax_i])
             # controller_visualizer.get_reward_plot(ax, r, c,
             #                                       controller_reward=moving_avg_controller_reward)
 

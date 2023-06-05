@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 
 def agent_reached_goal(agent, environment, goal_index):
-    target_goal_layer = 0 if goal_index == environment.nObj else goal_index+1
+    target_goal_layer = 0 if goal_index == environment.object_type_num else goal_index + 1
     agent_object_maps_equality = torch.all(torch.eq(environment.env_map[0, 0, :, :],
                                                     environment.env_map[0, target_goal_layer, :, :]))
     if agent_object_maps_equality:

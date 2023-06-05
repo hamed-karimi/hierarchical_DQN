@@ -4,7 +4,7 @@ from datetime import datetime
 import torch
 
 from AgentExplorationFunctions import *
-from TrainingController import training_controller
+from ControllerTraining import training_controller
 from MetaControllerTraining import training_meta_controller
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

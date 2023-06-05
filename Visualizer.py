@@ -35,11 +35,11 @@ def get_loss_plot(ax, r, c, **kwargs):
 
 class Visualizer:
     def __init__(self, utility):
-        params = utility.get_params()
+        params = utility.params
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.height = params.HEIGHT
         self.width = params.WIDTH
-        self.num_object = params.NUM_OBJECTS
+        self.object_type_num = params.OBJECT_TYPE_NUM
         allactions_np = [np.array([0, 0]), np.array([1, 0]), np.array([-1, 0]), np.array([0, 1]), np.array([0, -1]),
                          np.array([1, 1]), np.array([-1, -1]), np.array([-1, 1]), np.array([1, -1])]
         self.allactions = [torch.from_numpy(x).unsqueeze(0) for x in allactions_np]

@@ -8,14 +8,13 @@ from itertools import product
 
 class Agent:
     def __init__(self, h, w, n, episode_num, episode_len, prob_init_needs_equal, predefined_location,
-                 need_change_different_on_action, rho_function='ReLU',epsilon_function='Linear'):  # n: number of needs
+                 rho_function='ReLU',epsilon_function='Linear'):  # n: number of needs
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.height = h
         self.width = w
         self.location = self.initial_location(predefined_location)
         self.num_need = n
         self.range_of_need = [-12, 12]
-        self.need_change_on_action = need_change_different_on_action  # True or False
         self.prob_init_needs_equal = prob_init_needs_equal
         self.need = self.set_need()
         self.steps_done = 0
@@ -52,7 +51,7 @@ class Agent:
 
     def update_need_after_step(self, moving_cost):
         for i in range(self.num_need):
-            self.need[0, i] += (self.lambda_need + self.need_change_on_action * moving_cost / 2)
+            self.need[0, i] += self.lambda_need
 
     def update_need_after_reward(self, reward):
         self.need = self.need - reward
@@ -69,7 +68,7 @@ class Agent:
     # def reset_location(self, environment):  # Resets the location to somewhere other than the current one
     #     temp = (self.all_locations != self.location.squeeze())
     #     temp = torch.logical_or(temp[:, 0], temp[:, 1])
-    #     for obj in range(environment.nObj):
+    #     for obj in range(environment.object_type_num):
     #         object_nonoccupied = (
     #                     self.all_locations != environment.object_locations[obj, :].squeeze())
     #         object_nonoccupied = torch.logical_or(object_nonoccupied[:, 0], object_nonoccupied[:, 1])

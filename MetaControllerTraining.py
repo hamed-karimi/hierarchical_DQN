@@ -9,8 +9,8 @@ from AgentExplorationFunctions import *
 
 
 def training_meta_controller(controller):
-    utility = Utilities('Parameters.json')
-    params = utility.get_params()
+    utility = Utilities()
+    params = utility.params
 
     res_folder = utility.make_res_folder(sub_folder='MetaController')
     utility.save_training_config()
@@ -25,46 +25,38 @@ def training_meta_controller(controller):
     meta_controller = factory.get_meta_controller()
     meta_controller_visualizer = MetaControllerVisualizer(utility)
     environment_initialization_prob_map = np.ones(params.HEIGHT * params.WIDTH) * 100 / (params.HEIGHT * params.WIDTH)
-    pre_located_objects = [[]] * params.NUM_OBJECTS
+    pre_located_objects = [[]] * params.OBJECT_TYPE_NUM
     pre_located_agent = [[]]
     for episode in range(params.EPISODE_NUM):
         episode_meta_controller_reward = 0
         episode_meta_controller_loss = 0
         action = 0
         agent = factory.get_agent(pre_located_agent)
-        environment = factory.get_environment(environment_initialization_prob_map, pre_located_objects)
-        pre_located_objects = [[]] * params.NUM_OBJECTS
+        environment = factory.get_environment(['few', 'many'], environment_initialization_prob_map, pre_located_objects)
+        pre_located_objects = [[]] * params.OBJECT_TYPE_NUM
         pre_located_agent = [[]]
         done = torch.tensor([0])
         while True:
             env_map_0 = environment.env_map.clone()
             need_0 = agent.need.clone()
-            goal_map, goal_index = meta_controller.get_goal_map(environment, agent, episode)
-            num_goal_selected[goal_index] += 1
+            goal_map, goal_type = meta_controller.get_goal_map(environment, agent, episode)
+            # num_goal_selected[goal_type] += 1
 
-            agent_goal_map_0 = torch.stack([environment.env_map[0, 0, :, :],
-                                            goal_map], dim=0).unsqueeze(0).clone()
-
+            # agent_goal_map_0 = torch.stack([environment.env_map[0, 0, :, :],
+            #                                 goal_map], dim=0).unsqueeze(0).clone()
+            agent_goal_map_0 = environment.env_map[:, [0, goal_type], :, :]
             action_id = controller.get_action(environment, agent_goal_map_0, episode).clone()
             rho, _ = agent.take_action(environment, action_id)
             episode_meta_controller_reward += rho
 
-            goal_reached = agent_reached_goal(agent, environment, goal_index)
+            goal_reached = agent_reached_goal(agent, environment, goal_type)
             # episode_meta_controller_reward = rho + episode_meta_controller_reward * params.GAMMA
 
             agent_needs_over_time[global_index, :] = agent.need.clone()
             action += 1
             global_index += 1
 
-            # if goal_reached:
-            #     if goal_index.item() < params.NUM_OBJECTS:  # reached goal is an object
-            #         pre_located_agent = agent.location.tolist()
-            #         for i in range(environment.object_locations.shape[0]):
-            #             if i != goal_index.item():
-            #                 pre_located_objects[i] = environment.object_locations[i, :].tolist()
-                # done = torch.tensor([1])
-
-            meta_controller.save_experience(env_map_0, need_0, goal_index,
+            meta_controller.save_experience(env_map_0, need_0, goal_type,
                                             rho, done,
                                             environment.env_map.clone(),
                                             agent.need.clone())

@@ -6,14 +6,16 @@ import numpy as np
 
 
 class Utilities:
-    def __init__(self, json_file_path):
+    def __init__(self):
         self.res_folder = None
-        with open(json_file_path, 'r') as json_file:
+        with open('./Parameters.json', 'r') as json_file:
             self.params = json.load(json_file,
                                     object_hook=lambda d: SimpleNamespace(**d))
 
-    def get_params(self):
-        return self.params
+    def initialize_constants(self):
+        self.params.CONV1_KERNEL = min(4, self.params.WIDTH)
+        self.params.CONV1_OUT = 32
+        self.params.LINEAR_IN = self.params.CONV1_OUT
 
     def make_res_folder(self, sub_folder=''):
         now = datetime.now().strftime("%d-%m-%Y_%H-%M")

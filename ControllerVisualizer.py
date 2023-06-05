@@ -1,3 +1,5 @@
+import math
+
 from Visualizer import Visualizer
 import numpy as np
 import torch
@@ -9,12 +11,14 @@ from matplotlib.ticker import FormatStrFormatter
 class ControllerVisualizer(Visualizer):
     def __init__(self, utility):
         super().__init__(utility)
-
-        self.row_num = 3
-        self.col_num = 6
+        self.row_num = self.height - 1
+        self.col_num = self.width + 2
+        self.scale = self.row_num * self.col_num / (self.width//2)
+        self.asterisk_size = (1/math.log(self.row_num * self.col_num, 500))**(self.width/2)
 
     def get_greedy_values_figure(self, controller):
         fig, ax = plt.subplots(self.row_num, self.col_num, figsize=(15, 10))
+        r, c = 0, 0
         for x in range(self.height):
             for y in range(self.width):
                 action_values = torch.zeros((self.height, self.width))
@@ -22,8 +26,8 @@ class ControllerVisualizer(Visualizer):
                 for i in range(self.height):
                     for j in range(self.width):
                         env_map = torch.zeros((1, 2, self.height, self.width))
-                        env_map[0, 0, i, j] = 1
-                        env_map[0, 1, x, y] = 1
+                        env_map[0, 0, i, j] = 1  # Agent
+                        env_map[0, 1, x, y] = 1  # Object
                         with torch.no_grad():
                             state = State_batch(env_map.to(self.device), None)
                             controller_values = controller.policy_net(state)
@@ -43,21 +47,22 @@ class ControllerVisualizer(Visualizer):
                 fig_num = x*self.height + y
                 r = fig_num // self.col_num
                 c = fig_num % self.col_num
-                ax[r, c].quiver(Xs, Ys, arrows_x, arrows_y, scale=10)
+                ax[r, c].quiver(Xs, Ys, arrows_x, arrows_y, scale=self.scale, headwidth=1.5*self.asterisk_size)
                 ax[r, c].set_xticks([])
                 ax[r, c].set_yticks([])
                 ax[r, c].invert_yaxis()
-                ax[r, c].scatter(y, x, marker='*', s=40, facecolor=[1, 0, .2])
+                ax[r, c].scatter(y, x, marker='*', s=4*self.asterisk_size, facecolor=[1, 0, .2])
                 ax[r, c].set_box_aspect(aspect=1)
 
-        plt.tight_layout(pad=0.4, w_pad=1, h_pad=1)
-        return fig, ax
+        plt.tight_layout(pad=0.1) #, w_pad=.05, h_pad=.05)
+        fig.subplots_adjust(wspace=0.1, hspace=0.1)
+        return fig, ax, r, c+1
 
     def get_epsilon_plot(self, ax, r, c, steps_done, **kwargs):
         ax[r, c].scatter(np.arange(steps_done), kwargs['controller_epsilons'], s=.1)
-        ax[r, c].tick_params(axis='both', which='major', labelsize=9)
-        ax[r, c].set_title('Controller Epsilon', fontsize=9)
-        ax[r, c].yaxis.set_major_formatter(FormatStrFormatter('%.3f'))
+        ax[r, c].tick_params(axis='both', which='major', labelsize=5)
+        ax[r, c].set_title('Epsilon', fontsize=5)
+        ax[r, c].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         ax[r, c].set_box_aspect(aspect=1)
         return ax, r, c + 1
 

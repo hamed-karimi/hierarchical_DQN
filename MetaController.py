@@ -25,12 +25,13 @@ class MetaController:
 
     def __init__(self, batch_size, num_objects, gamma, episode_num, episode_len, memory_capacity, rewarded_action_selection_ratio):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.policy_net = hDQN(num_objects=num_objects).to(self.device)
+        self.policy_net = hDQN().to(self.device)
         self.policy_net.apply(weights_init_orthogonal)
-        self.target_net = hDQN(num_objects=num_objects).to(self.device)
+        self.target_net = hDQN().to(self.device)
         self.target_net.load_state_dict(self.policy_net.state_dict())
         self.memory = MetaControllerMemory(memory_capacity)
         self.rewarded_action_selection_ratio = rewarded_action_selection_ratio
+        self.object_type_num = num_objects
         self.steps_done = 0
         self.EPS_START = 0.95
         self.EPS_END = 0.05
@@ -60,30 +61,30 @@ class MetaController:
         object_locations = environment.object_locations.clone()
         e = random.random()
         if e < epsilon:  # random (goal or stay)
-            ind = random.randint(0, object_locations.shape[0])
-            ind = torch.tensor(ind).clone().detach()
+            goal_type = np.random.randint(low=0, high=self.object_type_num+1)
         else:
             with torch.no_grad():
                 env_map = environment.env_map.clone().to(self.device)
                 need = agent.need.to(self.device)
                 state = State_batch(env_map, need)
-                goal_values = self.policy_net(state).squeeze()
-                ind = goal_values.argmax().cpu()
+                goal_type_values = self.policy_net(state).squeeze()
+                goal_type = goal_type_values.argmax().cpu()
 
         # stay
-        if ind == object_locations.shape[0]:
+        if goal_type == self.object_type_num:
             self.steps_done += 1
-            goal_map = environment.env_map[0, 0, :, :].clone()  # agent map as goal map
-            return goal_map, ind.unsqueeze(0)
+            goal_map = environment.env_map[:, 0, :, :].clone()  # agent map as goal map
+            return goal_map, goal_type
 
         # goal
-        selected_obj_location = object_locations[ind, :]
-        goal_map = torch.zeros((environment.height, environment.width), dtype=torch.float32)
-        goal_map[selected_obj_location[0], selected_obj_location[1]] = 1
+        # selected_obj_type = object_locations[goal_type, :]
+        # goal_map = torch.zeros((environment.height, environment.width), dtype=torch.float32)
+        # goal_map[selected_obj_location[0], selected_obj_location[1]] = 1
+        goal_map = environment.env_map[:, goal_type+1, :, :]
         self.steps_done += 1
-        # self.selected_goal[episode, ind] = 1 if episode == 0 else self.selected_goal[episode-1, ind]+1
-        # self.selected_goal[episode, 1-ind] = 0 if episode == 0 else self.selected_goal[episode-1, 1-ind]
-        return goal_map, ind.unsqueeze(0)
+        # self.selected_goal[episode, goal_type] = 1 if episode == 0 else self.selected_goal[episode-1, goal_type]+1
+        # self.selected_goal[episode, 1-goal_type] = 0 if episode == 0 else self.selected_goal[episode-1, 1-goal_type]
+        return goal_map, goal_type
 
     def save_experience(self, initial_map, initial_need, goal_index, acquired_reward, done, final_map, final_need):
         self.memory.push_experience(initial_map, initial_need, goal_index, acquired_reward, done, final_map, final_need)

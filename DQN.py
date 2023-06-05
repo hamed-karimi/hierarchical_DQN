@@ -3,6 +3,8 @@ import torch.nn.functional as F
 import torch
 import torch.nn.init as init
 
+import Utilities
+
 
 def weights_init_orthogonal(m):
     classname = m.__class__.__name__
@@ -25,21 +27,25 @@ def num_flat_features(x):  # This is a function we added for convenience to find
 
 
 class hDQN(nn.Module):  # meta controller network
-    def __init__(self, num_objects=2):
+    def __init__(self):
+        utilities = Utilities.Utilities()
+        params = utilities.params
         super(hDQN, self).__init__()
-        env_layer_num = num_objects + 1  # +1 is agent layer
-        self.conv1 = nn.Conv2d(env_layer_num, 32, 4)
-        self.fc1 = nn.Linear(32 + num_objects, 16)  # needs are equal to # of objects
+        env_layer_num = params.OBJECT_TYPE_NUM + 1  # +1 for agent layer
+        padding = (8 - params.WIDTH) // 2
+        self.conv1 = nn.Conv2d(env_layer_num, 32, 4, padding=padding)
+        self.max_pool = nn.MaxPool2d(5)
+        self.fc1 = nn.Linear(32 + params.OBJECT_TYPE_NUM, 16)  # needs are equal to # of objects
         self.fc2 = nn.Linear(16, 8)
-        self.fc3 = nn.Linear(8, env_layer_num) # 0, 1: goals, 2: stay
+        self.fc3 = nn.Linear(8, env_layer_num)  # 0, 1: goals, 2: stay
 
     def forward(self, state_batch):
         env_map = state_batch.env_map
         agent_need = state_batch.agent_need
         y = F.relu(self.conv1(env_map))
-        y = y.view(-1, num_flat_features(y))
+        y = F.relu(self.max_pool(y))
+        y = y.flatten(start_dim=1, end_dim=-1)
         y = torch.cat((y, agent_need), 1)  # Adding the needs
-
         y = F.relu(self.fc1(y))
         y = F.relu(self.fc2(y))
         y = self.fc3(y)
@@ -49,14 +55,19 @@ class hDQN(nn.Module):  # meta controller network
 class lDQN(nn.Module):  # controller network
     def __init__(self):
         super(lDQN, self).__init__()
-        self.conv1 = nn.Conv2d(2, 32, 4)
+        utilities = Utilities.Utilities()
+        params = utilities.params
+        padding = (8 - params.WIDTH) // 2
+        self.conv1 = nn.Conv2d(params.OBJECT_TYPE_NUM, 32, 4, padding=padding)
+        self.max_pool = nn.MaxPool2d(5)
         self.fc1 = nn.Linear(32, 16)
         self.fc2 = nn.Linear(16, 9)
 
     def forward(self, state_batch):
         x = state_batch.env_map.clone() # agent map and goal map (the second layer contains a single 1)
         y = F.relu(self.conv1(x))
-        y = y.view(-1, num_flat_features(y))
+        y = F.relu(self.max_pool(y))
+        y = y.flatten(start_dim=1, end_dim=-1)
         y = F.relu(self.fc1(y))
         y = self.fc2(y)
         return y

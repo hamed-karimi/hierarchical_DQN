@@ -50,14 +50,14 @@ class Controller:
         self.policy_net.load_state_dict(model_path)
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
-    def get_non_linear_epsilon(self, step_done):
-        whole = self.episode_num * self.episode_len * .6
-        steep = math.log(whole)  # 3*end/4990 + 992/499
-        k = 1 / (whole / steep)
-        i = whole / 2
-        f_x = np.exp(k * (step_done - i))
-        epsilon = 1 / (1 + f_x)
-        return epsilon
+    # def get_non_linear_epsilon(self, step_done):
+    #     whole = self.episode_num * self.episode_len * .6
+    #     steep = math.log(whole)  # 3*end/4990 + 992/499
+    #     k = 1 / (whole / steep)
+    #     i = whole / 2
+    #     f_x = np.exp(k * (step_done - i))
+    #     epsilon = 1 / (1 + f_x)
+    #     return epsilon
 
     def get_linear_epsilon(self, episode):
         epsilon = self.EPS_START - (episode / self.episode_num) * \
@@ -86,9 +86,9 @@ class Controller:
     def save_experience(self, initial_agent_goal_map, action, next_agent_goal_map, reward, done, action_mask):
         self.memory.push_experience(initial_agent_goal_map, action, next_agent_goal_map, reward, done, action_mask)
         if done.item() == 1:
-            self.memory.push_selection_ratio(selection_raio=self.rewarded_action_selection_ratio)
+            self.memory.push_selection_ratio(selection_ratio=self.rewarded_action_selection_ratio)
         else:
-            self.memory.push_selection_ratio(selection_raio=1)
+            self.memory.push_selection_ratio(selection_ratio=1)
 
     def update_target_net(self):
         self.target_net.load_state_dict(self.policy_net.state_dict())
