@@ -99,19 +99,19 @@ class Controller:
         transition_sample = self.memory.sample(self.BATCH_SIZE)
         batch = self.memory.get_transition(*zip(*transition_sample))
 
-        initial_agent_goal_map_batch = torch.cat([batch.agent_goal_map[i] for i in range(len(batch.agent_goal_map))])
-        action_batch = torch.cat(batch.action)
+        initial_agent_goal_map_batch = torch.cat([batch.agent_goal_map[i] for i in range(len(batch.agent_goal_map))]).to(self.device)
+        action_batch = torch.cat(batch.action).to(self.device)
         at_agent_goal_map_batch = torch.cat(
-            [batch.next_agent_goal_map[i] for i in range(len(batch.next_agent_goal_map))])
-        reward_batch = torch.cat(batch.reward)
-        done_batch = torch.cat(batch.done)
-        mask_batch = torch.cat(batch.action_mask)
+            [batch.next_agent_goal_map[i] for i in range(len(batch.next_agent_goal_map))]).to(self.device)
+        reward_batch = torch.cat(batch.reward).to(self.device)
+        done_batch = torch.cat(batch.done).to(self.device)
+        mask_batch = torch.cat(batch.action_mask).to(self.device)
 
         at_state_batch = State_batch(at_agent_goal_map_batch, None)
         initial_state_batch = State_batch(initial_agent_goal_map_batch, None)
 
-        policynet_goal_values_of_initial_state = self.policy_net(initial_state_batch)
-        targetnet_goal_values_of_at_state = self.target_net(at_state_batch)
+        policynet_goal_values_of_initial_state = self.policy_net(initial_state_batch).to(self.device)
+        targetnet_goal_values_of_at_state = self.target_net(at_state_batch).to(self.device)
         targetnet_goal_values_of_at_state[torch.logical_not(mask_batch.bool())] = -3.40e+38
 
         targetnet_max_goal_value = targetnet_goal_values_of_at_state.max(1)[0].detach().float()
