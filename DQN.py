@@ -63,13 +63,11 @@ class lDQN(nn.Module):  # controller network
         utilities = Utilities.Utilities()
         params = utilities.params
         env_layer_num = params.OBJECT_TYPE_NUM  # +1 for agent layer
-        padding = (8 - params.WIDTH) // 2
-        # self.conv1 = nn.Conv2d(params.OBJECT_TYPE_NUM, 32, 4, padding=padding)
+        # padding = (8 - params.WIDTH) // 2
         kernel_size = min(params.WIDTH, params.DQN_CONV1_KERNEL)
         self.conv1 = nn.Conv2d(in_channels=env_layer_num,
                                out_channels=params.DQN_CONV1_OUT_CHANNEL,
-                               kernel_size=kernel_size,
-                               padding=padding)
+                               kernel_size=kernel_size)
         self.max_pool = nn.MaxPool2d(params.WIDTH-kernel_size+1)
         self.fc1 = nn.Linear(in_features=params.DQN_CONV1_OUT_CHANNEL + params.OBJECT_TYPE_NUM,
                              out_features=16)
