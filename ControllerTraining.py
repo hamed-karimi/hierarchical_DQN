@@ -69,7 +69,7 @@ def training_controller(device):
         episodes_mean_controller_loss.append(episode_controller_loss / action)
         if (episode + 1) % params.PRINT_OUTPUT == 0:
             # moving_avg_controller_reward.append(episodes_mean_controller_reward / params.PRINT_OUTPUT)
-            print('avg internal reward', sum(episodes_mean_controller_reward) / (episode+1), ' ')
+            print('avg internal reward', sum(episodes_mean_controller_reward) / action, ' ')
             fig, ax, r, c = controller_visualizer.get_greedy_values_figure(controller)
 
             # r, c = 6, 5
@@ -77,13 +77,13 @@ def training_controller(device):
                                                               controller.steps_done,
                                                               controller_epsilons=controller.epsilon_list)
             ax, r, c = controller_visualizer.get_reward_plot(ax, r, c,
-                                                             controller_reward=episodes_mean_controller_reward)
+                                                             controller_reward=sum(episodes_mean_controller_reward)/len(episodes_mean_controller_reward))
             for ax_i in range(c, ax.shape[1]):
                 fig.delaxes(ax=ax[r, ax_i])
 
             fig.savefig('{0}/episode_{1}.png'.format(res_folder, episode + 1))
             plt.close()
-            # episodes_mean_controller_reward = 0
+            episodes_mean_controller_reward = []
 
         if (episode + 1) % params.CONTROLLER_TARGET_UPDATE == 0:
             controller.update_target_net()

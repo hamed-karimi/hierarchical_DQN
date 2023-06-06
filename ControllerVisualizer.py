@@ -17,6 +17,8 @@ class ControllerVisualizer(Visualizer):
         self.col_num = self.width + 2
         self.scale = self.row_num * self.col_num / (self.width//2)
         self.asterisk_size = (1/math.log(self.row_num * self.col_num, 500))**(self.width/2)
+        self.episode_chunk_rewards = []
+
 
     def get_greedy_values_figure(self, controller):
         fig, ax = plt.subplots(self.row_num, self.col_num, figsize=(15, 10))
@@ -70,7 +72,8 @@ class ControllerVisualizer(Visualizer):
         return ax, r, c + 1
 
     def get_reward_plot(self, ax, r, c, controller_reward):
-        ax[r, c].plot(controller_reward)
+        self.episode_chunk_rewards.append(controller_reward)
+        ax[r, c].plot(self.episode_chunk_rewards)
         ax[r, c].tick_params(axis='both', which='major', labelsize=5, pad=.5)
         ax[r, c].set_title('Episode reward', fontsize=8, pad=1)
         ax[r, c].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
