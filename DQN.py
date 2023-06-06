@@ -69,7 +69,7 @@ class lDQN(nn.Module):  # controller network
                                out_channels=params.DQN_CONV1_OUT_CHANNEL,
                                kernel_size=kernel_size)
         self.max_pool = nn.MaxPool2d(params.WIDTH-kernel_size+1)
-        self.fc1 = nn.Linear(in_features=params.DQN_CONV1_OUT_CHANNEL + params.OBJECT_TYPE_NUM,
+        self.fc1 = nn.Linear(in_features=params.DQN_CONV1_OUT_CHANNEL,
                              out_features=16)
         self.fc2 = nn.Linear(16, 9)
 
