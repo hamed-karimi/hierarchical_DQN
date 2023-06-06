@@ -64,20 +64,28 @@ class lDQN(nn.Module):  # controller network
         params = utilities.params
         env_layer_num = params.OBJECT_TYPE_NUM  # +1 for agent layer
         # padding = (8 - params.WIDTH) // 2
-        kernel_size = min(params.WIDTH, params.DQN_CONV1_KERNEL)
+        # kernel_size = min(params.WIDTH, params.DQN_CONV1_KERNEL)
+        kernel_size = 2
         self.conv1 = nn.Conv2d(in_channels=env_layer_num,
                                out_channels=params.DQN_CONV1_OUT_CHANNEL,
                                kernel_size=kernel_size)
-        self.max_pool = nn.MaxPool2d(params.WIDTH-kernel_size+1)
+        self.max_pool = nn.MaxPool2d(kernel_size=3,
+                                     stride=2)
+        self.conv2 = nn.Conv2d(in_channels=params.DQN_CONV1_OUT_CHANNEL,
+                               out_channels=params.DQN_CONV1_OUT_CHANNEL,
+                               kernel_size=3)
         self.fc1 = nn.Linear(in_features=params.DQN_CONV1_OUT_CHANNEL,
-                             out_features=16)
-        self.fc2 = nn.Linear(16, 9)
+                             out_features=32)
+        self.fc2 = nn.Linear(in_features=32, out_features=16)
+        self.fc3 = nn.Linear(16, 9)
 
     def forward(self, state_batch):
         x = state_batch.env_map.clone() # agent map and goal map (the second layer contains a single 1)
         y = F.relu(self.conv1(x))
-        y = F.relu(self.max_pool(y))
+        y = self.max_pool(y)
+        y = F.relu(self.conv2(y))
         y = y.flatten(start_dim=1, end_dim=-1)
         y = F.relu(self.fc1(y))
-        y = self.fc2(y)
+        y = F.relu(self.fc2(y))
+        y = self.fc3(y)
         return y

@@ -27,7 +27,7 @@ class ControllerVisualizer(Visualizer):
         for x in range(self.height):
             for y in range(self.width):
                 action_values = torch.zeros((self.height, self.width))
-                which_action = torch.zeros((self.height, self.width), dtype=torch.int16)
+                which_action = torch.zeros((self.height, self.width), dtype=torch.int32)
                 for i in range(self.height):
                     for j in range(self.width):
                         env_map = torch.zeros((1, 2, self.height, self.width))
